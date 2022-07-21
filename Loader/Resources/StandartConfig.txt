@@ -1,0 +1,4 @@
+[Settings]
+genshinclients=0
+grasscuters=0
+metshod=fiddler

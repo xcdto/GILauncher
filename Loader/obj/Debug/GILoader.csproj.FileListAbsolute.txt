@@ -11,3 +11,16 @@ D:\Проекты Visual Stusio\Genshin Loader\Loader\Loader\bin\Debug\Loader.ex
 D:\Проекты Visual Stusio\Genshin Loader\Loader\Loader\bin\Debug\Loader.pdb
 D:\Проекты Visual Stusio\Genshin Loader\Loader\Loader\obj\Debug\Loader.AddClient.resources
 D:\Проекты Visual Stusio\Genshin Loader\Loader\Loader\obj\Debug\Loader.AddGrassJar.resources
+D:\GitHub\GILauncher\Loader\bin\Debug\Loader.exe.config
+D:\GitHub\GILauncher\Loader\bin\Debug\Loader.exe
+D:\GitHub\GILauncher\Loader\bin\Debug\Loader.pdb
+D:\GitHub\GILauncher\Loader\obj\Debug\GILoader.csproj.AssemblyReference.cache
+D:\GitHub\GILauncher\Loader\obj\Debug\GILoader.csproj.SuggestedBindingRedirects.cache
+D:\GitHub\GILauncher\Loader\obj\Debug\Loader.AddGrassJar.resources
+D:\GitHub\GILauncher\Loader\obj\Debug\Loader.AddClient.resources
+D:\GitHub\GILauncher\Loader\obj\Debug\GILoader.MainForm.resources
+D:\GitHub\GILauncher\Loader\obj\Debug\Loader.Properties.Resources.resources
+D:\GitHub\GILauncher\Loader\obj\Debug\GILoader.csproj.GenerateResource.cache
+D:\GitHub\GILauncher\Loader\obj\Debug\GILoader.csproj.CoreCompileInputs.cache
+D:\GitHub\GILauncher\Loader\obj\Debug\Loader.exe
+D:\GitHub\GILauncher\Loader\obj\Debug\Loader.pdb

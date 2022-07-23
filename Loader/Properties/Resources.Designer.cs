@@ -61,6 +61,30 @@ namespace Loader.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на import os
+        ///
+        ///# This can also be replaced with another IP address.
+        ///USE_SSL = True
+        ///REMOTE_HOST = &quot;REPLACEHEREIP&quot;
+        ///REMOTE_PORT = REPLACEHEREPORT
+        ///
+        ///if os.getenv(&apos;MITM_REMOTE_HOST&apos;) != None:
+        ///    REMOTE_HOST = os.getenv(&apos;MITM_REMOTE_HOST&apos;)
+        ///if os.getenv(&apos;MITM_REMOTE_PORT&apos;) != None:
+        ///    REMOTE_PORT = int(os.getenv(&apos;MITM_REMOTE_PORT&apos;))
+        ///if os.getenv(&apos;MITM_USE_SSL&apos;) != None:
+        ///    USE_SSL = bool(os.getenv(&apos;MITM_USE_SSL&apos;))
+        ///
+        ///print(&apos;MITM Remote Host: &apos; + REMOTE_HOST)
+        ///print(&apos;MITM Remote Port: &apos; + str(REMOTE_PORT) [остаток строки не уместился]&quot;;.
+        /// </summary>
+        public static string config_proxy_py {
+            get {
+                return ResourceManager.GetString("config_proxy.py", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на /* Original script by NicknameGG, modified for VincDev For GenshinPSID. */
         ///import System;
         ///import System.Windows.Forms;
@@ -79,6 +103,42 @@ namespace Loader.Properties {
         public static string FiddlerScript {
             get {
                 return ResourceManager.GetString("FiddlerScript", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на ##
+        ///#
+        ///#   Copyright (C) 2002-2022 MlgmXyysd All Rights Reserved.
+        ///#
+        ///##
+        ///
+        ///##
+        ///#
+        ///#   Animation Company script for mitmproxy
+        ///#
+        ///#   https://github.com/MlgmXyysd/
+        ///#
+        ///#   *Original fiddler script from https://github.lunatic.moe/fiddlerscript
+        ///#
+        ///#   Environment requirement:
+        ///#     - mitmdump from mitmproxy
+        ///#
+        ///#   @author MlgmXyysd
+        ///#   @version 1.1
+        ///#
+        ///##
+        ///
+        ///import collections
+        ///import random
+        ///from mitmproxy import http, connection, ctx, tls
+        ///from abc import ABC, abstractmethod
+        ///from enum import Enum
+        ///from [остаток строки не уместился]&quot;;.
+        /// </summary>
+        public static string proxy_py {
+            get {
+                return ResourceManager.GetString("proxy.py", resourceCulture);
             }
         }
         

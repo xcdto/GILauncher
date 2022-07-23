@@ -108,5 +108,11 @@
   <ItemGroup>
     <None Include="Resources\StandartConfig.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\proxy.py.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\config_proxy.py.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,0 +1,13 @@
+D:\GitHub\GILauncher\Loader\bin\Release\Loader.exe.config
+D:\GitHub\GILauncher\Loader\bin\Release\Loader.exe
+D:\GitHub\GILauncher\Loader\bin\Release\Loader.pdb
+D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.AssemblyReference.cache
+D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.SuggestedBindingRedirects.cache
+D:\GitHub\GILauncher\Loader\obj\Release\Loader.AddGrassJar.resources
+D:\GitHub\GILauncher\Loader\obj\Release\Loader.AddClient.resources
+D:\GitHub\GILauncher\Loader\obj\Release\GILoader.MainForm.resources
+D:\GitHub\GILauncher\Loader\obj\Release\Loader.Properties.Resources.resources
+D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.GenerateResource.cache
+D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.CoreCompileInputs.cache
+D:\GitHub\GILauncher\Loader\obj\Release\Loader.exe
+D:\GitHub\GILauncher\Loader\obj\Release\Loader.pdb

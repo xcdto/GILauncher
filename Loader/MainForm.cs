@@ -9,15 +9,25 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace GILoader
 {
     public partial class MainForm : Form
     {
+        [DllImport("wininet.dll")] //For mitmproxy
+        public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
+        public const int INTERNET_OPTION_SETTINGS_CHANGED = 39;
+        public const int INTERNET_OPTION_REFRESH = 37;
+        static bool settingsReturn, refreshReturn;
+
         Loader.Config cfg = new Config(Application.StartupPath + "/config.ini"); //Підключаєм конфіг.
 
         public MainForm()
@@ -107,6 +117,14 @@ namespace GILoader
                 comboBoxGenshin.SelectedIndex = Convert.ToInt32(cfg.Read("Settings", "selectedgenshin"));
                 comboBox2.SelectedIndex = Convert.ToInt32(cfg.Read("Settings", "selectedgrass"));
                 textBox1.Text = cfg.Read("Settings", "ip");
+                textBox2.Text = cfg.Read("Settings", "port");
+
+                if (cfg.Read("Settings", "method") == "fiddler")
+                    fdlcheck.Checked = true;
+                else if (cfg.Read("Settings", "method") == "mitmproxy")
+                    mitmcheck.Checked = true;
+                else if (cfg.Read("Settings", "method") == "no")
+                    nochange.Checked = true;
             }
             catch { }
         }
@@ -118,7 +136,7 @@ namespace GILoader
                 await Task.Delay(100);
                 if (lnchGC.Checked) //Якщо грасскутер.
                 {
-                    if (label1.Text.Contains("Done"))
+                    if (ConsoleOutputRichBox.Text.Contains("Done"))
                     {
                         if (proxyok)
                         {
@@ -142,9 +160,19 @@ namespace GILoader
 
         async void StartGrasscutterServer()
         {
+            try
+            {
+                if (publicgrassproc.Id > 0)
+                {
+                    MessageBox.Show("Grasscutter alredy started.");
+                    return;
+                }
+            }
+            catch (NullReferenceException) { } //Its normal.
+
             if (lnchGC.Checked) //Галка з грасскуттером чи ні.
             {
-                string grasscutterfile = cfg.Read($"Grasscutter{comboBoxGenshin.SelectedIndex + 1}", "patch"); //Шлях отримаємо з конфігу.
+                string grasscutterfile = cfg.Read($"Grasscutter{comboBox2.SelectedIndex + 1}", "patch"); //Шлях отримаємо з конфігу.
                 string grasspatch = Path.GetDirectoryName(grasscutterfile) + Path.DirectorySeparatorChar; //Треба дізнатися шлях папки, так как грасскутер думає що він запускаеться у каталозі Windows де знаходиться CMD.
 
                 Process grassutterProcess = Process.Start(new ProcessStartInfo
@@ -159,10 +187,15 @@ namespace GILoader
 
                 publicgrassproc = grassutterProcess; //Сетаємо навсякий, щоб потім можна буле детектити його.
 
+    
+                #if !DEBUG
                 grassutterProcess.BeginOutputReadLine();
                 grassutterProcess.BeginErrorReadLine();
-                grassutterProcess.OutputDataReceived += (s, a) => { label1.Text += Environment.NewLine + a.Data; }; // Показуємо в label те що нам виводить консоль. 
-                grassutterProcess.ErrorDataReceived += (s, a) => { label1.Text += Environment.NewLine + a.Data; }; // Можливо для дебагу це допоможе, ах.
+                grassutterProcess.OutputDataReceived += (s, a) => { ConsoleOutputRichBox.Text += Environment.NewLine + a.Data; }; // Показуємо в label те що нам виводить консоль. 
+                grassutterProcess.ErrorDataReceived += (s, a) => { ConsoleOutputRichBox.Text += Environment.NewLine + a.Data; }; // Можливо для дебагу це допоможе, ах.
+                #elif DEBUG
+                ConsoleOutputRichBox.Text += "In DEBUG mode output now workink :<";
+                #endif
             }
         }
 
@@ -192,9 +225,108 @@ namespace GILoader
                     proxyok = true;
                 }
             }
-            else if (hostcheck.Checked) //Через Хост чи ні.
+            else if (mitmcheck.Checked) //Через Хост чи ні.
             {
-                //to do: Зробити через файл хост.
+                //Через mitmproxy
+
+                if (!File.Exists(Application.StartupPath + "/proxy.py")) //є прокси.пай? ні, создай.
+                {
+                    File.WriteAllText(Application.StartupPath + "/proxy.py", Loader.Properties.Resources.proxy_py);
+                }
+
+                File.WriteAllText(Application.StartupPath + "/proxy_config.py", Loader.Properties.Resources.config_proxy_py
+                    .Replace("REPLACEHEREIP", textBox1.Text)
+                    .Replace("REPLACEHEREPORT", textBox2.Text ?? "443"));
+
+                CMD("taskkill /F /IM mitmproxy.exe"); //Вбиваємо його якщо з ним щось не так.
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "cmd",
+                    Arguments = $"/c chcp 65001 & mitmproxy -s {Application.StartupPath + "/proxy.py"} -k",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+
+                //Встанавлюємо глобал проксі.
+                RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
+                registry.SetValue("ProxyEnable", 1);
+                registry.SetValue("ProxyServer", "localhost:8080");
+
+                settingsReturn = InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
+                refreshReturn = InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
+
+                ////Воно прцює якось лячно.
+                ////Отримуємо потрібні данні.
+                //string system = Environment.GetFolderPath(Environment.SpecialFolder.System);
+                //string path = Path.GetPathRoot(system);
+                //string host = path + @"Windows\System32\drivers\etc\hosts";
+                //if (textBox1.Text == "localhost") { textBox1.Text = "127.0.0.1"; }
+                //string siteip = Dns.GetHostAddresses(textBox1.Text).FirstOrDefault().ToString();
+
+                //clearHost(); //Очищюємо хост від зайвого сміття залишиного нами.
+
+                //File.AppendAllText(host, Environment.NewLine + "# Added by GILaucnher" +
+                //        Environment.NewLine + $"{siteip} dispatchosglobal.yuanshen.com" +
+                //        Environment.NewLine + $"{siteip} dispatchcnglobal.yuanshen.com" +
+                //        Environment.NewLine + $"{siteip} osusadispatch.yuanshen.com" +
+                //        Environment.NewLine + $"{siteip} oseurodispatch.yuanshen.com" +
+                //        Environment.NewLine + $"{siteip} osasiadispatch.yuanshen.com" +
+
+                //        Environment.NewLine + $"{siteip} hk4e-api-os-static.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-api-static.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-api-os.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-api.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-sdk-os.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-sdk.mihoyo.com" +
+
+                //        Environment.NewLine + $"{siteip} account.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} api-os-takumi.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} api-takumi.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} sdk-os-static.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} sdk-static.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} webstatic-sea.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} webstatic.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} uploadstatic-sea.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} uploadstatic.mihoyo.com" +
+
+                //        Environment.NewLine + $"{siteip} api-os-takumi.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} sdk-os-static.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} sdk-os.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} webstatic-sea.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} uploadstatic-sea.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} api-takumi.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} sdk-static.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} sdk.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} webstatic.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} uploadstatic.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} account.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} api-account-os.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} api-account.hoyoverse.com" +
+
+                //        Environment.NewLine + $"{siteip} hk4e-api-os.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-api-os-static.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-sdk-os.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-sdk-os-static.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-api.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-api-static.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-sdk.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} hk4e-sdk-static.hoyoverse.com" +
+
+                //        Environment.NewLine + $"{siteip} log-upload.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} log-upload-os.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} log-upload-os.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} devlog-upload.mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} overseauspider.yuanshen.com" +
+
+                //        Environment.NewLine + $"{siteip} yuanshen.com" +
+                //        Environment.NewLine + $"{siteip} hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} mihoyo.com" +
+                //        Environment.NewLine + $"{siteip} genshin.yuanshen.com" +
+                //        Environment.NewLine + $"{siteip} genshin.hoyoverse.com" +
+                //        Environment.NewLine + $"{siteip} genshin.mihoyo.com" +
+                //        Environment.NewLine + $"# End GILauncher");
+
                 proxyok = true;
             }
             else if (nochange.Checked) //Якщо нічого не вибрано.
@@ -203,53 +335,78 @@ namespace GILoader
             }
         }
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        void clearHost()
+        {
+            //Отримуємо потрібні данні.
+            string system = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            string path = Path.GetPathRoot(system);
+            string host = path + @"Windows\System32\drivers\etc\hosts";
+
+            //Видаляємо можливливий текст котрий ми залишали раніше.
+            string contetnthost = File.ReadAllText(host);
+            Match regx = Regex.Match(contetnthost, @"# Added by GILaucnher(.*?)# End GILauncher", RegexOptions.Singleline);
+            string content = regx.Value;
+            if (content != null && content != "")
+            {
+                string clearedhost = contetnthost.Replace(content, "");
+                File.WriteAllText(host, clearedhost);
+            }
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e) //Коли програма зачинаяється.
         {
             //Зберінаємо налаштування.
             cfg.Write("Settings", "selectedgenshin", comboBoxGenshin.SelectedIndex.ToString()); //Вибраний геншин.
             cfg.Write("Settings", "selectedgrass", comboBox2.SelectedIndex.ToString()); //Вибраний геншин.
             cfg.Write("Settings", "ip", textBox1.Text); //Вибраний ip.
+            cfg.Write("Settings", "port", textBox2.Text); //Вибраний port.
+            if(fdlcheck.Checked)
+                cfg.Write("Settings", "method", "fiddler");
+            else if (mitmcheck.Checked)
+                cfg.Write("Settings", "method", "mitmproxy");
+            else if (nochange.Checked)
+                cfg.Write("Settings", "method", "no");
 
-            //Вбиваємо Геншин.
-            Process[] processesGen = Process.GetProcessesByName("GenshinImpact");
-            foreach (Process worker in processesGen)
-            {
-                worker.Kill();
-            }
-            Process[] processesYan = Process.GetProcessesByName("YuanShen");
-            foreach (Process worker in processesYan)
-            {
-                worker.Kill();
-            }
+            //Вбиваємо GenshinImpact YuanShen Fiddler Java mitmproxy.exe
+            CMD("taskkill /F /IM GenshinImpact.exe &" +
+                "taskkill /F /IM YuanShen.exe &" +
+                 "taskkill /F /IM mitmproxy.exe &" +
+                "taskkill /IM Fiddler.exe &" + //без /F бо якщо принуждаючи він проксі ламає.
+                "taskkill /F /IM Java.exe");
 
-            //Вбиваємо фідлер.
-            Process[] processesFid = Process.GetProcessesByName("Fiddler");
-            foreach (Process worker in processesFid)
-            {
-                worker.Kill();
-            }
+            clearHost(); //Очищюємо хост від зайвого сміття залишиного нами.
 
-            //Вбиваємо Java.
-            Process[] processesJava = Process.GetProcessesByName("Java");
-            foreach (Process worker in processesFid)
-            {
-                worker.Kill();
-            }
-
-            //Буває таке, що процесс з cmd відкритий, та й ще з відкритим грасскутером. Тому робимо кілл процес.
-            try { publicgrassproc.Kill(); } catch { } //Якщо він не зміг його вбити, то нічого страшного. Обробляти також не треба.
+            //Вимикаємо проксі.
+            RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
+            registry.SetValue("ProxyEnable", 0);
         }
 
-        private void btnAddClient_Click(object sender, EventArgs e)
+        private void btnAddClient_Click(object sender, EventArgs e) //Кнопка додавання геншину.
         {
             Form frmadd = new Loader.AddClient();
             frmadd.ShowDialog();
         }
 
-        private void btnAddGrass_Click(object sender, EventArgs e)
+        private void btnAddGrass_Click(object sender, EventArgs e) //Кнопка додавання гарсскутеру.
         {
             Form frmadd = new Loader.AddGrassJar();
             frmadd.ShowDialog();
+        }
+
+        private void GrassStopProc(object sender, EventArgs e) //Вбиваємо всі процесси джави. Можливо це не добра ідея, але гарантована.
+        {
+            CMD("taskkill /F /IM java.exe");
+        }
+
+        void CMD(string command) //Метод для запуску консолі з очікуванням виходу.
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "cmd",
+                Arguments = $"/c chcp 65001 & {command}",
+                UseShellExecute = false, 
+                CreateNoWindow = true
+            }).WaitForExit();
         }
     }
 }

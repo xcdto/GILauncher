@@ -34,15 +34,17 @@
             this.comboBoxGenshin = new System.Windows.Forms.ComboBox();
             this.lnchGC = new System.Windows.Forms.CheckBox();
             this.comboBox2 = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.panelSettings = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.nochange = new System.Windows.Forms.RadioButton();
-            this.hostcheck = new System.Windows.Forms.RadioButton();
+            this.mitmcheck = new System.Windows.Forms.RadioButton();
             this.fdlcheck = new System.Windows.Forms.RadioButton();
             this.btnAddClient = new System.Windows.Forms.Button();
             this.btnAddGrass = new System.Windows.Forms.Button();
             this.UpdaterTimer = new System.Windows.Forms.Timer(this.components);
+            this.ConsoleOutputRichBox = new System.Windows.Forms.RichTextBox();
+            this.button1 = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
             this.panelSettings.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -93,19 +95,10 @@
             this.comboBox2.Size = new System.Drawing.Size(102, 21);
             this.comboBox2.TabIndex = 5;
             // 
-            // label1
-            // 
-            this.label1.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.label1.ForeColor = System.Drawing.SystemColors.ControlLight;
-            this.label1.Location = new System.Drawing.Point(9, 9);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(459, 290);
-            this.label1.TabIndex = 6;
-            // 
             // panelSettings
             // 
             this.panelSettings.Controls.Add(this.groupBox1);
-            this.panelSettings.Location = new System.Drawing.Point(268, 335);
+            this.panelSettings.Location = new System.Drawing.Point(344, 335);
             this.panelSettings.Name = "panelSettings";
             this.panelSettings.Size = new System.Drawing.Size(200, 103);
             this.panelSettings.TabIndex = 7;
@@ -113,7 +106,7 @@
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.nochange);
-            this.groupBox1.Controls.Add(this.hostcheck);
+            this.groupBox1.Controls.Add(this.mitmcheck);
             this.groupBox1.Controls.Add(this.fdlcheck);
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
@@ -132,15 +125,15 @@
             this.nochange.Text = "No Change";
             this.nochange.UseVisualStyleBackColor = true;
             // 
-            // hostcheck
+            // mitmcheck
             // 
-            this.hostcheck.AutoSize = true;
-            this.hostcheck.Location = new System.Drawing.Point(12, 45);
-            this.hostcheck.Name = "hostcheck";
-            this.hostcheck.Size = new System.Drawing.Size(120, 17);
-            this.hostcheck.TabIndex = 1;
-            this.hostcheck.Text = "Host Method (Soon)";
-            this.hostcheck.UseVisualStyleBackColor = true;
+            this.mitmcheck.AutoSize = true;
+            this.mitmcheck.Location = new System.Drawing.Point(12, 45);
+            this.mitmcheck.Name = "mitmcheck";
+            this.mitmcheck.Size = new System.Drawing.Size(73, 17);
+            this.mitmcheck.TabIndex = 1;
+            this.mitmcheck.Text = "MitmProxy";
+            this.mitmcheck.UseVisualStyleBackColor = true;
             // 
             // fdlcheck
             // 
@@ -179,22 +172,53 @@
             this.UpdaterTimer.Enabled = true;
             this.UpdaterTimer.Tick += new System.EventHandler(this.UpdaterTimer_Tick);
             // 
+            // ConsoleOutputRichBox
+            // 
+            this.ConsoleOutputRichBox.BackColor = System.Drawing.SystemColors.InfoText;
+            this.ConsoleOutputRichBox.ForeColor = System.Drawing.SystemColors.Info;
+            this.ConsoleOutputRichBox.Location = new System.Drawing.Point(12, 12);
+            this.ConsoleOutputRichBox.Name = "ConsoleOutputRichBox";
+            this.ConsoleOutputRichBox.Size = new System.Drawing.Size(837, 287);
+            this.ConsoleOutputRichBox.TabIndex = 10;
+            this.ConsoleOutputRichBox.Text = "";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(250, 337);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(57, 19);
+            this.button1.TabIndex = 11;
+            this.button1.Text = "KillGrass";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.GrassStopProc);
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(223, 390);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(100, 20);
+            this.textBox2.TabIndex = 12;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(480, 450);
+            this.ClientSize = new System.Drawing.Size(890, 528);
+            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.ConsoleOutputRichBox);
             this.Controls.Add(this.btnAddGrass);
             this.Controls.Add(this.btnAddClient);
             this.Controls.Add(this.panelSettings);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.comboBox2);
             this.Controls.Add(this.lnchGC);
             this.Controls.Add(this.comboBoxGenshin);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.btnLaunch);
             this.Name = "MainForm";
-            this.Text = "B";
+            this.ShowIcon = false;
+            this.Text = "GILauncher";
+            this.TopMost = true;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.panelSettings.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
@@ -211,15 +235,17 @@
         private System.Windows.Forms.ComboBox comboBoxGenshin;
         private System.Windows.Forms.CheckBox lnchGC;
         private System.Windows.Forms.ComboBox comboBox2;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel panelSettings;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button btnAddClient;
         private System.Windows.Forms.Button btnAddGrass;
         private System.Windows.Forms.RadioButton nochange;
-        private System.Windows.Forms.RadioButton hostcheck;
+        private System.Windows.Forms.RadioButton mitmcheck;
         private System.Windows.Forms.RadioButton fdlcheck;
         private System.Windows.Forms.Timer UpdaterTimer;
+        private System.Windows.Forms.RichTextBox ConsoleOutputRichBox;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.TextBox textBox2;
     }
 }
 

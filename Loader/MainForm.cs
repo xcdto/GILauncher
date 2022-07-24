@@ -398,6 +398,25 @@ namespace GILoader
             CMD("taskkill /F /IM java.exe");
         }
 
+        private void btnOpenServer_Click(object sender, EventArgs e)
+        {
+            ExplorerOpen(cfg.Read($"Grasscutter{comboBox2.SelectedIndex + 1}", "patch"));
+        }
+
+        private void btnopenGenshin_Click(object sender, EventArgs e)
+        {
+            ExplorerOpen(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
+        }
+
+        private void lnchGC_CheckedChanged(object sender, EventArgs e)
+        {
+            if (lnchGC.Checked)
+                ConsoleOutputRichBox.Visible = true;
+            else
+                ConsoleOutputRichBox.Visible = false;
+
+        }
+
         void CMD(string command) //Метод для запуску консолі з очікуванням виходу.
         {
             Process.Start(new ProcessStartInfo
@@ -407,6 +426,15 @@ namespace GILoader
                 UseShellExecute = false, 
                 CreateNoWindow = true
             }).WaitForExit();
+        }
+
+        void ExplorerOpen(string patch)
+        {
+            Process.Start(new ProcessStartInfo
+            { 
+                FileName = "explorer",
+                Arguments = $"/n, /select, {patch}"
+            });
         }
     }
 }

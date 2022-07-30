@@ -46,12 +46,13 @@
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.btnOpenServer = new System.Windows.Forms.Button();
             this.btnopenGenshin = new System.Windows.Forms.Button();
+            this.patchmetadatabox = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnLaunch
             // 
-            this.btnLaunch.Location = new System.Drawing.Point(12, 261);
+            this.btnLaunch.Location = new System.Drawing.Point(12, 290);
             this.btnLaunch.Name = "btnLaunch";
             this.btnLaunch.Size = new System.Drawing.Size(318, 23);
             this.btnLaunch.TabIndex = 0;
@@ -101,12 +102,12 @@
             this.groupBox1.Controls.Add(this.nochange);
             this.groupBox1.Controls.Add(this.mitmcheck);
             this.groupBox1.Controls.Add(this.fdlcheck);
-            this.groupBox1.Location = new System.Drawing.Point(13, 290);
+            this.groupBox1.Location = new System.Drawing.Point(13, 331);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(317, 97);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Proxy Method";
+            this.groupBox1.Text = " Proxy Method ";
             // 
             // nochange
             // 
@@ -215,12 +216,23 @@
             this.btnopenGenshin.UseVisualStyleBackColor = true;
             this.btnopenGenshin.Click += new System.EventHandler(this.btnopenGenshin_Click);
             // 
+            // patchmetadatabox
+            // 
+            this.patchmetadatabox.AutoSize = true;
+            this.patchmetadatabox.Location = new System.Drawing.Point(14, 271);
+            this.patchmetadatabox.Name = "patchmetadatabox";
+            this.patchmetadatabox.Size = new System.Drawing.Size(102, 17);
+            this.patchmetadatabox.TabIndex = 16;
+            this.patchmetadatabox.Text = "Patch Metadata";
+            this.patchmetadatabox.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
-            this.ClientSize = new System.Drawing.Size(344, 404);
+            this.ClientSize = new System.Drawing.Size(344, 439);
+            this.Controls.Add(this.patchmetadatabox);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnOpenServer);
             this.Controls.Add(this.btnopenGenshin);
@@ -234,14 +246,14 @@
             this.Controls.Add(this.comboBoxGenshin);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.btnLaunch);
-            this.MaximumSize = new System.Drawing.Size(360, 443);
-            this.MinimizeBox = false;
+            this.MaximizeBox = false;
+            this.MaximumSize = new System.Drawing.Size(360, 560);
             this.MinimumSize = new System.Drawing.Size(360, 443);
             this.Name = "MainForm";
             this.ShowIcon = false;
             this.Text = "GILauncher";
-            this.TopMost = true;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -268,6 +280,7 @@
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button btnOpenServer;
         private System.Windows.Forms.Button btnopenGenshin;
+        private System.Windows.Forms.CheckBox patchmetadatabox;
     }
 }
 

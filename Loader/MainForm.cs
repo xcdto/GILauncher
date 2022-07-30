@@ -33,7 +33,11 @@ namespace GILoader
         public MainForm()
         {
             InitializeComponent();
+        }
 
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            startConfigRead();
             UpdaterConfig();
         }
 
@@ -49,6 +53,9 @@ namespace GILoader
 
         private void btnLaunch_Click(object sender, EventArgs e)
         {
+            //PatchMetadata
+            if (!patchmetadata()) { return; }
+
             //Запускаємо грасскуттер.
             StartGrasscutterServer();
 
@@ -119,6 +126,9 @@ namespace GILoader
                 textBox1.Text = cfg.Read("Settings", "ip");
                 textBox2.Text = cfg.Read("Settings", "port");
 
+                lnchGC.Checked = Convert.ToBoolean(cfg.Read("Settings", "grassbox")); //Вибран грасс.
+                patchmetadatabox.Checked = Convert.ToBoolean(cfg.Read("Settings", "patcher")); //Пачер.
+
                 if (cfg.Read("Settings", "method") == "fiddler")
                     fdlcheck.Checked = true;
                 else if (cfg.Read("Settings", "method") == "mitmproxy")
@@ -127,6 +137,81 @@ namespace GILoader
                     nochange.Checked = true;
             }
             catch { }
+        }
+
+        bool patchmetadata()
+        {
+            string patchgenshin = Path.GetDirectoryName(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
+            string isitgenshindata = "GenshinImpact_Data"; //Чекер чайна це чи глобал.
+            if (Directory.Exists(patchgenshin + "/YuanShen_Data")) { isitgenshindata = "YuanShen_Data"; }
+            else if (Directory.Exists(patchgenshin + "/GenshinImpact_Data")) { isitgenshindata = "GenshinImpact_Data"; }
+
+            //Якщо не патчимо то:
+            if (!patchmetadatabox.Checked) //Навсяк ставимо оріганал якщо моливо.
+            {
+                try
+                {
+                    if (File.Exists(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat"))
+                    {
+                        File.Delete(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+                        File.Copy(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+                    }
+
+                    if (File.Exists(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat"))
+                    {
+                        File.Delete(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+                        File.Copy(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+                    }
+                }
+                catch { }
+
+                return true; 
+            } 
+
+            //Спочатку терба знайти версію геншина. Нормальний метод я не знайшов.
+            
+            //MessageBox.Show(patchgenshin);
+            //string patchtogenshinconfig = patchgenshin + "/config.ini"; //Тому отримємо версію з конфігу лаунчера.
+            //Config configgenshin = new Config(patchtogenshinconfig);
+
+            //var gameversion = configgenshin.Read("General", "game_version"); //Отримана версія.
+
+
+            if (File.Exists(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat"))
+            {
+                //Добре, файл є.
+                //Тепер ми робимо резерну копію орігіналу.
+                if (!File.Exists(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat"))
+                    File.Copy(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat");
+
+                //Потім просто заміняємо файл.
+                File.Delete(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+                File.Copy(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+            }
+            else
+            {
+                MessageBox.Show($"Could not find \"{patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat"}\", make sure you have it. You can find it on the Internet or Maybe in GitHub.");
+                return false;
+            }
+
+            if (File.Exists(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat"))
+            {
+                //Добре, файл є.
+                //Тепер ми робимо резерну копію орігіналу.
+                if (!File.Exists(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat"))
+                    File.Copy(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat");
+
+                //Потім просто заміняємо файл.
+                File.Delete(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+                File.Copy(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+            }
+            else
+            {
+                MessageBox.Show($"Could not find \"{patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat"}\", make sure you have it. You can find it on the Internet or Maybe in GitHub.");
+                return false;
+            }
+
+            return true;
         }
 
         async void StartGenshin() //Запускаємо геншин.
@@ -360,12 +445,15 @@ namespace GILoader
             cfg.Write("Settings", "selectedgrass", comboBox2.SelectedIndex.ToString()); //Вибраний геншин.
             cfg.Write("Settings", "ip", textBox1.Text); //Вибраний ip.
             cfg.Write("Settings", "port", textBox2.Text); //Вибраний port.
-            if(fdlcheck.Checked)
+            cfg.Write("Settings", "grassbox", lnchGC.Checked.ToString()); //Вибран грасс.
+            cfg.Write("Settings", "patcher", patchmetadatabox.Checked.ToString()); //Пачер.
+            if (fdlcheck.Checked)
                 cfg.Write("Settings", "method", "fiddler");
             else if (mitmcheck.Checked)
                 cfg.Write("Settings", "method", "mitmproxy");
             else if (nochange.Checked)
                 cfg.Write("Settings", "method", "no");
+            
 
             //Вбиваємо GenshinImpact YuanShen Fiddler Java mitmproxy.exe
             CMD("taskkill /F /IM GenshinImpact.exe &" +
@@ -375,6 +463,26 @@ namespace GILoader
                 "taskkill /F /IM Java.exe");
 
             clearHost(); //Очищюємо хост від зайвого сміття залишиного нами.
+
+
+            //Робимо нормальним метадату.
+            string patchgenshin = Path.GetDirectoryName(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
+            string isitgenshindata = "GenshinImpact_Data"; //Чекер чайна це чи глобал.
+            if (Directory.Exists(patchgenshin + "/YuanShen_Data")) { isitgenshindata = "YuanShen_Data"; }
+            else if (Directory.Exists(patchgenshin + "/GenshinImpact_Data")) { isitgenshindata = "GenshinImpact_Data"; }
+
+            if (File.Exists(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat"))
+            {
+                File.Delete(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+                File.Copy(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+            }
+
+            if (File.Exists(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat"))
+            {
+                File.Delete(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+                File.Copy(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+            }
+
 
             //Вимикаємо проксі.
             RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);

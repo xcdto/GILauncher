@@ -14,5 +14,6 @@ For the full-fledged robots of the program, you need to install:
 - [.NET Framework 4.7.2](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472 ".NET Framework 4.7.2")
 - [Fiddler Classic](https://www.telerik.com/download/fiddler-b "Fiddler Classic")
 - [MitmProxy](https://mitmproxy.org/ "MitmProxy")
+- [Python](https://www.python.org/downloads/ "Python")
 
 And then download from the [releases](https://github.com/Hacker-TA/GILauncher/releases "releases").

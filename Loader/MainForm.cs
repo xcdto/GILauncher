@@ -597,6 +597,11 @@ namespace GILoader
             this.Opacity = 1;
         }
 
+        private void guna2Button5_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/Hacker-TA/GILauncher");
+        }
+
         private async void btnClose_Click(object sender, EventArgs e)
         {
             while (Opacity != 0) { Opacity -= .1; await Task.Delay(5); }

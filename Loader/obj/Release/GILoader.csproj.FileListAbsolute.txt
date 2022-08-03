@@ -11,3 +11,7 @@ D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.GenerateResource.cache
 D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.CoreCompileInputs.cache
 D:\GitHub\GILauncher\Loader\obj\Release\Loader.exe
 D:\GitHub\GILauncher\Loader\obj\Release\Loader.pdb
+D:\GitHub\GILauncher\Loader\bin\Release\System.Security.Cryptography.ProtectedData.xml
+D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.CopyComplete
+D:\GitHub\GILauncher\Loader\bin\Release\System.Diagnostics.DiagnosticSource.xml
+D:\GitHub\GILauncher\Loader\obj\Release\GILoader.csproj.Fody.CopyLocal.cache

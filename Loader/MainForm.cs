@@ -17,10 +17,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using System.Drawing.Drawing2D;
+using System.Globalization;
 
 namespace GILoader
 {
-    public partial class MainForm : Form
+    public partial  class MainForm : Form
     {
         [DllImport("wininet.dll")] //For mitmproxy
         public static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
@@ -33,12 +35,29 @@ namespace GILoader
         public MainForm()
         {
             InitializeComponent();
-        }
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
             startConfigRead();
             UpdaterConfig();
+
+            //Робимо форму за розмірами экрану.
+            var widhscren = Screen.PrimaryScreen.Bounds.Width;
+            var heightscren = Screen.PrimaryScreen.Bounds.Height;
+            this.Width = widhscren - 600; //Чому саме 600 та 300, не знаю але виглядить не погано.
+            this.Height = heightscren - 300;
+
+        }
+
+        private async void MainForm_Load(object sender, EventArgs e)
+        {
+            int i;
+            for (i = 0; i < 16; i++)
+            {
+                await Task.Delay(100);
+                if (i == 15)
+                {
+                   while (Opacity != 1) { Opacity += .1; await Task.Delay(10); }
+                }
+            }
         }
 
         public bool grasscuterStarted;
@@ -50,6 +69,8 @@ namespace GILoader
         public bool proxyok;
 
         public string lasthash = "somehash";
+
+        string grasscutteroutput = "sometext";
 
         private void btnLaunch_Click(object sender, EventArgs e)
         {
@@ -98,14 +119,14 @@ namespace GILoader
         {
             if (!File.Exists(Application.StartupPath + "/config.ini")) { File.WriteAllText(Application.StartupPath + "/config.ini", Loader.Properties.Resources.StandartConfig); } //Якщо конфігу нема.
 
-            comboBox2.Items.Clear();
-            comboBoxGenshin.Items.Clear();
+            grassBox.Items.Clear();
+            genshinBox.Items.Clear();
 
             try
             {
                 for (int i = 1; i <= Convert.ToInt32(cfg.Read("Settings", "genshinclients")); i++)
                 {
-                    comboBoxGenshin.Items.Add(cfg.Read($"Genshin{i}", "name"));
+                    genshinBox.Items.Add(cfg.Read($"Genshin{i}", "name"));
                 }
             }
             catch { }
@@ -114,40 +135,52 @@ namespace GILoader
             {
                 for (int i = 1; i <= Convert.ToInt32(cfg.Read("Settings", "grasscuters")); i++)
                 {
-                    comboBox2.Items.Add(cfg.Read($"Grasscutter{i}", "name"));
+                    grassBox.Items.Add(cfg.Read($"Grasscutter{i}", "name"));
                 }
             }
             catch { }
 
             try
             {
-                comboBoxGenshin.SelectedIndex = Convert.ToInt32(cfg.Read("Settings", "selectedgenshin"));
-                comboBox2.SelectedIndex = Convert.ToInt32(cfg.Read("Settings", "selectedgrass"));
-                textBox1.Text = cfg.Read("Settings", "ip");
-                textBox2.Text = cfg.Read("Settings", "port");
+                genshinBox.SelectedIndex = Convert.ToInt32(cfg.Read("Settings", "selectedgenshin"));
+                grassBox.SelectedIndex = Convert.ToInt32(cfg.Read("Settings", "selectedgrass"));
+                ipTextBox.Text = cfg.Read("Settings", "ip");
+                textboxPort.Text = cfg.Read("Settings", "port");
 
-                lnchGC.Checked = Convert.ToBoolean(cfg.Read("Settings", "grassbox")); //Вибран грасс.
-                patchmetadatabox.Checked = Convert.ToBoolean(cfg.Read("Settings", "patcher")); //Пачер.
+                laucnGrassBox.Checked = Convert.ToBoolean(cfg.Read("Settings", "grassbox")); //Вибран грасс.
+                patcherMetatdaBox.Checked = Convert.ToBoolean(cfg.Read("Settings", "patcher")); //Пачер.
 
                 if (cfg.Read("Settings", "method") == "fiddler")
-                    fdlcheck.Checked = true;
+                    fiddlerBox.Checked = true;
                 else if (cfg.Read("Settings", "method") == "mitmproxy")
-                    mitmcheck.Checked = true;
+                    mitmproxyBox.Checked = true;
                 else if (cfg.Read("Settings", "method") == "no")
-                    nochange.Checked = true;
+                   concviaproxyBox.Checked = false;
+
+                if (cfg.Read("Settings", "proxy") == "true")
+                    concviaproxyBox.Checked = true;
+
+            }
+            catch { }
+
+            try
+            {
+                picturePoxBack.Load(cfg.Read("Settings", "backimg"));
             }
             catch { }
         }
 
         bool patchmetadata()
         {
-            string patchgenshin = Path.GetDirectoryName(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
+            string patchgenshin = Path.GetDirectoryName(cfg.Read($"Genshin{genshinBox.SelectedIndex + 1}", "patch"));
             string isitgenshindata = "GenshinImpact_Data"; //Чекер чайна це чи глобал.
             if (Directory.Exists(patchgenshin + "/YuanShen_Data")) { isitgenshindata = "YuanShen_Data"; }
             else if (Directory.Exists(patchgenshin + "/GenshinImpact_Data")) { isitgenshindata = "GenshinImpact_Data"; }
 
+            startagain:
+
             //Якщо не патчимо то:
-            if (!patchmetadatabox.Checked) //Навсяк ставимо оріганал якщо моливо.
+            if (!patcherMetatdaBox.Checked) //Навсяк ставимо оріганал якщо моливо.
             {
                 try
                 {
@@ -165,16 +198,8 @@ namespace GILoader
                 }
                 catch { }
 
-                return true; 
-            } 
-
-            //Спочатку терба знайти версію геншина. Нормальний метод я не знайшов.
-            
-            //MessageBox.Show(patchgenshin);
-            //string patchtogenshinconfig = patchgenshin + "/config.ini"; //Тому отримємо версію з конфігу лаунчера.
-            //Config configgenshin = new Config(patchtogenshinconfig);
-
-            //var gameversion = configgenshin.Read("General", "game_version"); //Отримана версія.
+                return true;
+            }
 
 
             if (File.Exists(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat"))
@@ -190,8 +215,7 @@ namespace GILoader
             }
             else
             {
-                MessageBox.Show($"Could not find \"{patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat"}\", make sure you have it. You can find it on the Internet or Maybe in GitHub.");
-                return false;
+                goto patcher;
             }
 
             if (File.Exists(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat"))
@@ -207,11 +231,91 @@ namespace GILoader
             }
             else
             {
-                MessageBox.Show($"Could not find \"{patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat"}\", make sure you have it. You can find it on the Internet or Maybe in GitHub.");
-                return false;
+                goto patcher;
             }
 
             return true;
+
+            //PatchMetaData
+            //Нажаль в мене не вийшло, чомусь розмір файлів не збігається коли робиш реплейс. Чомусь тут навіть не працює .Replace, чому так я не знаю. 
+            //Також не можна сразу переводити у стрінг. Або читати файл текстом File.ReadAllText, бо тоды також розмір не збігається.
+            patcher:
+            if (File.Exists("global-metadata-patched.dat"))
+            {
+                File.Delete(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat");
+                File.Copy("global-metadata-patched.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat");
+                File.Delete(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat");
+                File.Copy("global-metadata-patched.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat");
+
+                goto startagain;
+            }
+
+            Process.Start("https://github.com/Hacker-TA/GILauncher/tree/main/Files/Metadata/");
+            MessageBox.Show($"Could not find global-metadata-patched.dat file in program root folder.\nYou can try to find it for your version on our github or on the Internet.");
+            return false;
+
+
+            //try
+            //{
+            //    //Создаємо файл с ресурсів.
+            //    if (!File.Exists(Application.StartupPath + "/metadata-extractor.exe")) { File.WriteAllBytes(Application.StartupPath + "/metadata-extractor.exe", Loader.Properties.Resources.metadata_extractor); }
+
+            //    //Managed metadata \
+            //    Process.Start(Application.StartupPath + "/metadata-extractor.exe", $"-i \"{patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat"}\" -o outputManaged.bin --decrypt").WaitForExit();
+            //    var resultdecrypt = File.ReadAllBytes("outputManaged.bin");
+
+            //    string pattern = @"<RSAKeyValue>((.|\n|\r)*?)</RSAKeyValue>";
+            //    string input = System.Text.Encoding.ASCII.GetString(resultdecrypt);
+            //    RegexOptions options = RegexOptions.Multiline | RegexOptions.RightToLeft;
+
+            //    Regex reg = new Regex(pattern, options);
+            //    MatchCollection match = reg.Matches(input);
+
+            //    //for (int i = 0; i < match.Count; i++)
+            //    //{
+            //    //    string key = match[i].Value;
+            //    //    Clipboard.SetText(match[i].Value);
+            //    //    MessageBox.Show($"ID: {i}\n" +
+            //    //        $"IsCountKey: {match[i].Value.Length}\n" +
+            //    //        $"ExistsKeyCountDispatchLengt: {Resources.dispatcherKey.Length}\n" +
+            //    //        $"ExisstKeyPasswordLengt{Resources.passwordKey.Length}\nRsaKeyWhatsFound: {match[i].Value}");
+            //    //}
+
+            //    string hexinput = BitConverter.ToString(resultdecrypt).Replace("-", " ");
+
+            //    string hexDispatcher = BitConverter.ToString(Encoding.ASCII.GetBytes(match[3].Value)).Replace("-", " ");
+            //    string hexpPass = BitConverter.ToString(Encoding.ASCII.GetBytes(match[4].Value));
+
+            //    string hexKeyDis = BitConverter.ToString(Encoding.ASCII.GetBytes(Loader.Properties.Resources.dispatcherKey)).Replace("-", " ");
+            //    string hexKeyPass = BitConverter.ToString(Encoding.ASCII.GetBytes(Loader.Properties.Resources.passwordKey)).Replace("-", " ");
+
+            //    Clipboard.SetText(hexDispatcher); MessageBox.Show(hexDispatcher);
+            //    Clipboard.SetText(hexKeyDis); MessageBox.Show(hexKeyDis);
+
+            //    //File.WriteAllText("put.txt", hexinput);
+
+            //    hexinput.Replace(hexDispatcher, hexKeyDis);
+            //    hexinput.Replace(hexpPass, hexKeyPass);
+
+            //    byte[] replceskey = Convert.FromBase64String(hexinput);
+
+            //    //File.WriteAllText("ppput.txt", BitConverter.ToString(replceskey).Replace("-", " "));
+
+            //    File.WriteAllBytes("input.bin", replceskey);
+            //    File.Delete("global-metadata-patched.dat");
+
+            //    Process.Start(Application.StartupPath + "/metadata-extractor.exe", $"-i input.bin -o global-metadata-patched.dat --encrypt").WaitForExit();
+
+            //    File.Delete(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat");
+            //    File.Copy("global-metadata-patched.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-patched.dat");
+
+
+            //    File.Delete(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat");
+            //    File.Copy("global-metadata-patched.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-patched.dat");
+
+            //    goto startagain;
+            //}
+            //catch (Exception e) { MessageBox.Show(e.ToString()); return false; }
         }
 
         async void StartGenshin() //Запускаємо геншин.
@@ -219,13 +323,13 @@ namespace GILoader
             while (!startedgenshin)
             {
                 await Task.Delay(100);
-                if (lnchGC.Checked) //Якщо грасскутер.
+                if (laucnGrassBox.Checked) //Якщо грасскутер.
                 {
-                    if (ConsoleOutputRichBox.Text.Contains("Done"))
+                    if (grasscutteroutput.Contains("Done"))
                     {
                         if (proxyok)
                         {
-                            Process.Start(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
+                            Process.Start(cfg.Read($"Genshin{genshinBox.SelectedIndex + 1}", "patch"));
                             startedgenshin = true;
                         }
                     }
@@ -236,7 +340,7 @@ namespace GILoader
                 {
                     if (proxyok)
                     {
-                        Process.Start(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
+                        Process.Start(cfg.Read($"Genshin{genshinBox.SelectedIndex + 1}", "patch"));
                         startedgenshin = true;
                     }
                 }
@@ -255,9 +359,9 @@ namespace GILoader
             }
             catch (NullReferenceException) { } //Its normal.
 
-            if (lnchGC.Checked) //Галка з грасскуттером чи ні.
+            if (laucnGrassBox.Checked) //Галка з грасскуттером чи ні.
             {
-                string grasscutterfile = cfg.Read($"Grasscutter{comboBox2.SelectedIndex + 1}", "patch"); //Шлях отримаємо з конфігу.
+                string grasscutterfile = cfg.Read($"Grasscutter{grassBox.SelectedIndex + 1}", "patch"); //Шлях отримаємо з конфігу.
                 string grasspatch = Path.GetDirectoryName(grasscutterfile) + Path.DirectorySeparatorChar; //Треба дізнатися шлях папки, так как грасскутер думає що він запускаеться у каталозі Windows де знаходиться CMD.
 
                 Process grassutterProcess = Process.Start(new ProcessStartInfo
@@ -276,17 +380,23 @@ namespace GILoader
                 #if !DEBUG
                 grassutterProcess.BeginOutputReadLine();
                 grassutterProcess.BeginErrorReadLine();
-                grassutterProcess.OutputDataReceived += (s, a) => { ConsoleOutputRichBox.Text += Environment.NewLine + a.Data; }; // Показуємо в label те що нам виводить консоль. 
-                grassutterProcess.ErrorDataReceived += (s, a) => { ConsoleOutputRichBox.Text += Environment.NewLine + a.Data; }; // Можливо для дебагу це допоможе, ах.
+                grassutterProcess.OutputDataReceived += (s, a) => { grasscutteroutput += Environment.NewLine + a.Data; }; // Показуємо в label те що нам виводить консоль. 
+                grassutterProcess.ErrorDataReceived += (s, a) => { grasscutteroutput += Environment.NewLine + a.Data; }; // Можливо для дебагу це допоможе, ах.
                 #elif DEBUG
-                ConsoleOutputRichBox.Text += "In DEBUG mode output now workink :<";
+                grasscutteroutput += "In DEBUG mode output now workink :<";
                 #endif
             }
         }
 
         void StartChangeProxyorHost()
         {
-            if (fdlcheck.Checked) //Фіддлер чи ні.
+            if (!concviaproxyBox.Checked) //Якщо нічого не вибрано.
+            {
+                proxyok = true;
+                return;
+            }
+
+            if (fiddlerBox.Checked) //Фіддлер чи ні.
             {
                 string patchDoc = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string patchFiddlerWhereSaveScript = Path.Combine(patchDoc + @"\Fiddler2\Scripts\CustomRules.js");
@@ -294,7 +404,7 @@ namespace GILoader
                 if (File.Exists(patchFiddlerWhereSaveScript))
                 {
                     //Ok скрипт є.
-                    string fiddlerscrip = Resources.FiddlerScript.Replace("SCRPTIPREPLACER", textBox1.Text);
+                    string fiddlerscrip = Resources.FiddlerScript.Replace("SCRPTIPREPLACER", ipTextBox.Text);
                     File.WriteAllText(patchFiddlerWhereSaveScript, fiddlerscrip); //Змінюємо айпи.
 
                     Process[] processes = Process.GetProcessesByName("Fiddler");
@@ -310,7 +420,7 @@ namespace GILoader
                     proxyok = true;
                 }
             }
-            else if (mitmcheck.Checked) //Через Хост чи ні.
+            else if (mitmproxyBox.Checked) //Через Хост чи ні.
             {
                 //Через mitmproxy
 
@@ -320,10 +430,10 @@ namespace GILoader
                 }
 
                 File.WriteAllText(Application.StartupPath + "/proxy_config.py", Loader.Properties.Resources.config_proxy_py
-                    .Replace("REPLACEHEREIP", textBox1.Text)
-                    .Replace("REPLACEHEREPORT", textBox2.Text ?? "443"));
+                    .Replace("REPLACEHEREIP", ipTextBox.Text)
+                    .Replace("REPLACEHEREPORT", textboxPort.Text ?? "443"));
 
-                CMD("taskkill /F /IM mitmproxy.exe"); //Вбиваємо його якщо з ним щось не так.
+                Ext.CMD("taskkill /F /IM mitmproxy.exe"); //Вбиваємо його якщо з ним щось не так.
 
                 Process.Start(new ProcessStartInfo
                 {
@@ -341,81 +451,6 @@ namespace GILoader
                 settingsReturn = InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SETTINGS_CHANGED, IntPtr.Zero, 0);
                 refreshReturn = InternetSetOption(IntPtr.Zero, INTERNET_OPTION_REFRESH, IntPtr.Zero, 0);
 
-                ////Воно прцює якось лячно.
-                ////Отримуємо потрібні данні.
-                //string system = Environment.GetFolderPath(Environment.SpecialFolder.System);
-                //string path = Path.GetPathRoot(system);
-                //string host = path + @"Windows\System32\drivers\etc\hosts";
-                //if (textBox1.Text == "localhost") { textBox1.Text = "127.0.0.1"; }
-                //string siteip = Dns.GetHostAddresses(textBox1.Text).FirstOrDefault().ToString();
-
-                //clearHost(); //Очищюємо хост від зайвого сміття залишиного нами.
-
-                //File.AppendAllText(host, Environment.NewLine + "# Added by GILaucnher" +
-                //        Environment.NewLine + $"{siteip} dispatchosglobal.yuanshen.com" +
-                //        Environment.NewLine + $"{siteip} dispatchcnglobal.yuanshen.com" +
-                //        Environment.NewLine + $"{siteip} osusadispatch.yuanshen.com" +
-                //        Environment.NewLine + $"{siteip} oseurodispatch.yuanshen.com" +
-                //        Environment.NewLine + $"{siteip} osasiadispatch.yuanshen.com" +
-
-                //        Environment.NewLine + $"{siteip} hk4e-api-os-static.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-api-static.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-api-os.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-api.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-sdk-os.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-sdk.mihoyo.com" +
-
-                //        Environment.NewLine + $"{siteip} account.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} api-os-takumi.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} api-takumi.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} sdk-os-static.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} sdk-static.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} webstatic-sea.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} webstatic.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} uploadstatic-sea.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} uploadstatic.mihoyo.com" +
-
-                //        Environment.NewLine + $"{siteip} api-os-takumi.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} sdk-os-static.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} sdk-os.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} webstatic-sea.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} uploadstatic-sea.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} api-takumi.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} sdk-static.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} sdk.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} webstatic.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} uploadstatic.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} account.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} api-account-os.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} api-account.hoyoverse.com" +
-
-                //        Environment.NewLine + $"{siteip} hk4e-api-os.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-api-os-static.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-sdk-os.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-sdk-os-static.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-api.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-api-static.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-sdk.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} hk4e-sdk-static.hoyoverse.com" +
-
-                //        Environment.NewLine + $"{siteip} log-upload.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} log-upload-os.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} log-upload-os.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} devlog-upload.mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} overseauspider.yuanshen.com" +
-
-                //        Environment.NewLine + $"{siteip} yuanshen.com" +
-                //        Environment.NewLine + $"{siteip} hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} mihoyo.com" +
-                //        Environment.NewLine + $"{siteip} genshin.yuanshen.com" +
-                //        Environment.NewLine + $"{siteip} genshin.hoyoverse.com" +
-                //        Environment.NewLine + $"{siteip} genshin.mihoyo.com" +
-                //        Environment.NewLine + $"# End GILauncher");
-
-                proxyok = true;
-            }
-            else if (nochange.Checked) //Якщо нічого не вибрано.
-            {
                 proxyok = true;
             }
         }
@@ -441,22 +476,23 @@ namespace GILoader
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e) //Коли програма зачинаяється.
         {
             //Зберінаємо налаштування.
-            cfg.Write("Settings", "selectedgenshin", comboBoxGenshin.SelectedIndex.ToString()); //Вибраний геншин.
-            cfg.Write("Settings", "selectedgrass", comboBox2.SelectedIndex.ToString()); //Вибраний геншин.
-            cfg.Write("Settings", "ip", textBox1.Text); //Вибраний ip.
-            cfg.Write("Settings", "port", textBox2.Text); //Вибраний port.
-            cfg.Write("Settings", "grassbox", lnchGC.Checked.ToString()); //Вибран грасс.
-            cfg.Write("Settings", "patcher", patchmetadatabox.Checked.ToString()); //Пачер.
-            if (fdlcheck.Checked)
+            cfg.Write("Settings", "selectedgenshin", genshinBox.SelectedIndex.ToString()); //Вибраний геншин.
+            cfg.Write("Settings", "selectedgrass", grassBox.SelectedIndex.ToString()); //Вибраний геншин.
+            cfg.Write("Settings", "ip", ipTextBox.Text); //Вибраний ip.
+            cfg.Write("Settings", "port", textboxPort.Text); //Вибраний port.
+            cfg.Write("Settings", "grassbox", laucnGrassBox.Checked.ToString()); //Вибран грасс.
+            cfg.Write("Settings", "patcher", patcherMetatdaBox.Checked.ToString()); //Пачер.
+            if (fiddlerBox.Checked)
                 cfg.Write("Settings", "method", "fiddler");
-            else if (mitmcheck.Checked)
+            else if (mitmproxyBox.Checked)
                 cfg.Write("Settings", "method", "mitmproxy");
-            else if (nochange.Checked)
-                cfg.Write("Settings", "method", "no");
             
+            if (concviaproxyBox.Checked)
+                cfg.Write("Settings", "proxy", "true");
+
 
             //Вбиваємо GenshinImpact YuanShen Fiddler Java mitmproxy.exe
-            CMD("taskkill /F /IM GenshinImpact.exe &" +
+            Ext.CMD("taskkill /F /IM GenshinImpact.exe &" +
                 "taskkill /F /IM YuanShen.exe &" +
                  "taskkill /F /IM mitmproxy.exe &" +
                 "taskkill /IM Fiddler.exe &" + //без /F бо якщо принуждаючи він проксі ламає.
@@ -465,29 +501,60 @@ namespace GILoader
             clearHost(); //Очищюємо хост від зайвого сміття залишиного нами.
 
 
-            //Робимо нормальним метадату.
-            string patchgenshin = Path.GetDirectoryName(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
-            string isitgenshindata = "GenshinImpact_Data"; //Чекер чайна це чи глобал.
-            if (Directory.Exists(patchgenshin + "/YuanShen_Data")) { isitgenshindata = "YuanShen_Data"; }
-            else if (Directory.Exists(patchgenshin + "/GenshinImpact_Data")) { isitgenshindata = "GenshinImpact_Data"; }
-
-            if (File.Exists(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat"))
+            try
             {
-                File.Delete(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
-                File.Copy(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
-            }
+                //Робимо нормальним метадату.
+                string patchgenshin = Path.GetDirectoryName(cfg.Read($"Genshin{genshinBox.SelectedIndex + 1}", "patch"));
+                string isitgenshindata = "GenshinImpact_Data"; //Чекер чайна це чи глобал.
+                if (Directory.Exists(patchgenshin + "/YuanShen_Data")) { isitgenshindata = "YuanShen_Data"; }
+                else if (Directory.Exists(patchgenshin + "/GenshinImpact_Data")) { isitgenshindata = "GenshinImpact_Data"; }
 
-            if (File.Exists(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat"))
-            {
-                File.Delete(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
-                File.Copy(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
-            }
+                if (File.Exists(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat"))
+                {
+                    File.Delete(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+                    File.Copy(patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Managed/Metadata/global-metadata.dat");
+                }
 
+                if (File.Exists(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat"))
+                {
+                    File.Delete(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+                    File.Copy(patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata-original.dat", patchgenshin + $"/{isitgenshindata}/Native/Data/Metadata/global-metadata.dat");
+                }
+
+            }
+            catch (ArgumentException) { } //Це нормльно.
+            catch (Exception ex) { MessageBox.Show($"Failed to restore global-metadata, reason:\n{ex}"); }
 
             //Вимикаємо проксі.
             RegistryKey registry = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings", true);
             registry.SetValue("ProxyEnable", 0);
         }
+
+        //Перемщение окна.
+        private bool dragging = false;
+        private Point offset;
+        private Point start_point = new Point(0, 0);
+
+        private void xcdto_MouseDown(object sender, MouseEventArgs e)
+        {
+            dragging = true;
+            start_point = new Point(e.X, e.Y);
+        }
+
+        private void xcdto_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (dragging)
+            {
+                Point p = PointToScreen(e.Location);
+                Location = new Point(p.X - this.start_point.X, p.Y - this.start_point.Y);
+            }
+        }
+
+        private void xcdto_MouseUp(object sender, MouseEventArgs e)
+        {
+            dragging = false;
+        }
+        //Конец кода для перемещения.
 
         private void btnAddClient_Click(object sender, EventArgs e) //Кнопка додавання геншину.
         {
@@ -503,43 +570,58 @@ namespace GILoader
 
         private void GrassStopProc(object sender, EventArgs e) //Вбиваємо всі процесси джави. Можливо це не добра ідея, але гарантована.
         {
-            CMD("taskkill /F /IM java.exe");
+            Ext.CMD("taskkill /F /IM java.exe");
         }
 
         private void btnOpenServer_Click(object sender, EventArgs e)
         {
-            ExplorerOpen(cfg.Read($"Grasscutter{comboBox2.SelectedIndex + 1}", "patch"));
+            Ext.ExplorerOpen(cfg.Read($"Grasscutter{grassBox.SelectedIndex + 1}", "patch"));
         }
 
         private void btnopenGenshin_Click(object sender, EventArgs e)
         {
-            ExplorerOpen(cfg.Read($"Genshin{comboBoxGenshin.SelectedIndex + 1}", "patch"));
+            Ext.CMD(cfg.Read($"Genshin{genshinBox.SelectedIndex + 1}", "patch"));
         }
 
-        private void lnchGC_CheckedChanged(object sender, EventArgs e)
+        private async void btnSettings_Click(object sender, EventArgs e)
         {
-            if (lnchGC.Checked)
-                ConsoleOutputRichBox.Visible = true;
-            else
-                ConsoleOutputRichBox.Visible = false;
-
+            if (panelSettings.Visible == false) { panelSettings.Update(); panelSettings.Show(); panelSettings.Invalidate(); }
+            else { panelSettings.Hide(); }
         }
 
-        void CMD(string command) //Метод для запуску консолі з очікуванням виходу.
+        private async void btnMin_Click(object sender, EventArgs e)
+        {
+            while (Opacity != 0) { Opacity -= .1; await Task.Delay(1); }
+
+            this.WindowState = FormWindowState.Minimized;
+            this.Opacity = 1;
+        }
+
+        private async void btnClose_Click(object sender, EventArgs e)
+        {
+            while (Opacity != 0) { Opacity -= .1; await Task.Delay(5); }
+
+            Application.Exit();
+        }
+
+    }
+
+    public static class Ext
+    {
+        public static void CMD(string command) //Метод для запуску консолі з очікуванням виходу.
         {
             Process.Start(new ProcessStartInfo
             {
                 FileName = "cmd",
                 Arguments = $"/c chcp 65001 & {command}",
-                UseShellExecute = false, 
+                UseShellExecute = false,
                 CreateNoWindow = true
             }).WaitForExit();
         }
-
-        void ExplorerOpen(string patch)
+        public static void ExplorerOpen(string patch)
         {
             Process.Start(new ProcessStartInfo
-            { 
+            {
                 FileName = "explorer",
                 Arguments = $"/n, /select, {patch}"
             });

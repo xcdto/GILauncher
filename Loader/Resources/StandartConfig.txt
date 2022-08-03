@@ -2,3 +2,4 @@
 genshinclients=0
 grasscuters=0
 backimg=https://cdn.discordapp.com/attachments/884137212696989756/1000835575147937852/Ayato.png
+method=mitmproxy

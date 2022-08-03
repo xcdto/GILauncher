@@ -85,6 +85,15 @@ namespace Loader.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на &lt;RSAKeyValue&gt;&lt;Modulus&gt;AMW28dptX3h8q0O4z/vJrQxf6cmC6yVilgHRL98GazrYzmc3ixj87JpHIJ3IKEYV+HU/tYrUjEfY/ZtPzsLB9lKBelN9i8QjkFkA9QDICGYwJCXibxU67Z/HzENe9NQpG2i01SI0TJU8PJDV7zQPwPVGraIg5ouExRupq8UymaSHEyJ7zxKZCtgO0LKdROLJBSvI5srMu7kYTGmB7T07Ab8T9M595YSgd1vh06qZ3nsF1h4wg3y+zW28vdY28+RCj2V1i7oVyL0dQruLYq7qK8FycZl2j9R0GaJ8rRAjVP1Dsz+hjS3atHhQxOG9OFo6d/euedRvfWIhT9p6h1SeTjE=&lt;/Modulus&gt;&lt;Exponent&gt;AQAB&lt;/Exponent&gt;&lt;/RSAKeyValue&gt;.
+        /// </summary>
+        public static string dispatcherKey {
+            get {
+                return ResourceManager.GetString("dispatcherKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на /* Original script by NicknameGG, modified for VincDev For GenshinPSID. */
         ///import System;
         ///import System.Windows.Forms;
@@ -103,6 +112,111 @@ namespace Loader.Properties {
         public static string FiddlerScript {
             get {
                 return ResourceManager.GetString("FiddlerScript", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_close_96px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_close_96px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_close_96px_1 {
+            get {
+                object obj = ResourceManager.GetObject("icons8_close_96px_1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_download_96px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_download_96px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_folder_96px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_folder_96px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_github_96px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_github_96px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_minus_96px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_minus_96px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_plus_math_96px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_plus_math_96px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap icons8_settings_96px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_settings_96px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Byte[].
+        /// </summary>
+        public static byte[] metadata_extractor {
+            get {
+                object obj = ResourceManager.GetObject("metadata_extractor", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на &lt;RSAKeyValue&gt;
+        ///                                                &lt;Exponent&gt;AQAB&lt;/Exponent&gt;
+        ///                                                &lt;Modulus&gt;yytg/H9lz7Lm0XcA8LMqIyXPVNApYTcSepT4VDLB4qqqFC3s
+        ///                                                /Huv8vN7zA/P4uoREIu8KMenADFk7uwrZSxoMWwJgn6A7sbAt1cqAaUXB
+        ///                                                9J4NzhL0x3AFTiHEQbw86hRvm2VGkbA5sWnr0NZw8SGBBY+EODwNIt51G
+        ///                                                dBA7eoUQU=&lt;/Modulus&gt;
+        ///                                [остаток строки не уместился]&quot;;.
+        /// </summary>
+        public static string passwordKey {
+            get {
+                return ResourceManager.GetString("passwordKey", resourceCulture);
             }
         }
         
@@ -143,10 +257,20 @@ namespace Loader.Properties {
         }
         
         /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap Raiden_Shogun_Build_Guide_For_Genshin_Impact {
+            get {
+                object obj = ResourceManager.GetObject("Raiden-Shogun-Build-Guide-For-Genshin-Impact", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на [Settings]
         ///genshinclients=0
         ///grasscuters=0
-        ///metshod=fiddler.
+        ///backimg=https://cdn.discordapp.com/attachments/884137212696989756/1000835575147937852/Ayato.png.
         /// </summary>
         public static string StandartConfig {
             get {

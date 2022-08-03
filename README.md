@@ -17,3 +17,8 @@ For the full-fledged robots of the program, you need to install:
 - [Python](https://www.python.org/downloads/ "Python")
 
 And then download from the [releases](https://github.com/Hacker-TA/GILauncher/releases "releases").
+
+## Screenshots
+[![](https://media.discordapp.net/attachments/884137212696989756/1004444427881812090/Loader_5iTCe5lJxR.jpg)](https://media.discordapp.net/attachments/884137212696989756/1004444427881812090/Loader_5iTCe5lJxR.jpg)
+
+[![](https://media.discordapp.net/attachments/884137212696989756/1004444428150243388/Loader_aCHj9GMimw.jpg)](https://media.discordapp.net/attachments/884137212696989756/1004444428150243388/Loader_aCHj9GMimw.jpg)
